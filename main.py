@@ -112,12 +112,16 @@ class Tweet:
         self.next = None
 
 # borrar stopwords
-stopwords = [a, and, of, his, hers, my, when, there, is, are, so, or, it, for]
+lista_stopwords = ["a", "in"]
+post = "found a raccoon in my house"
+post_sin_sw = ""
+
+for palabra in post.split():
+     if palabra not in lista_stopwords:
+        post_sin_sw = post_sin_sw  + palabra + " "
+   
+
 
 # recorrer texto del tweet
-for palabra in tweet:
-    # si la palabra no es parte de la lista de stopwords se agrega a la descripcion o cuerpo del tweet
-    if stopwords not in palabra:
-        tweet_sin_stopwords = tweet_sin_stopwords.append(palabra)
 
 """
