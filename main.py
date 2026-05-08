@@ -1,6 +1,16 @@
 # Importar la libreria para leer los archivos csv
 import csv
 
+# Función para borrar stopwords
+def borrarStopwords(tweet):
+    lista_stopwords = ["a", "in", "my"]
+    tweet_sin_sw = ""
+
+    for palabra in tweet.split():
+         if palabra not in lista_stopwords:
+            tweet_sin_sw = tweet_sin_sw  + palabra + " "
+    return tweet_sin_sw
+
 # Clase usuario para nuestra lista enlazada simple
 class User:
     def __init__(self, number, tweet, sentiment):
@@ -70,9 +80,14 @@ for data in data_list:
         contador = 0
 
 # Recorrer lista de usuarios
+print("Lista de usuarios: ")
+print("")
 user_list.print()
 
-
+# Borrar stopwords de un tweet
+tweet = "found a raccoon in my house"
+tweet = borrarStopwords(tweet)
+print(tweet)
 
 
 
@@ -111,17 +126,6 @@ class Tweet:
         self.likes = likes
         self.liked_by = liked_by
         self.next = None
-
-# borrar stopwords
-lista_stopwords = ["a", "in"]
-post = "found a raccoon in my house"
-post_sin_sw = ""
-
-for palabra in post.split():
-     if palabra not in lista_stopwords:
-        post_sin_sw = post_sin_sw  + palabra + " "
-   
-
 
 # recorrer texto del tweet
 
