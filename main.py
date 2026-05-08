@@ -8,6 +8,7 @@ class User:
         self.tweet = tweet
         self.sentiment = sentiment
         self.next = None
+
 # Lista de usuarios y sus funciones
 class UserList:
     def __init__(self):
