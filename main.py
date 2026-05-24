@@ -1,11 +1,18 @@
 # Importar la libreria para leer los archivos csv
 import csv
 
+# Estructura para el indice invertido
+class NodoIndice:
+    def __init__(self, numero_id):
+        self.numero = numero_id
+        self.next = None
+        
 # Función para borrar stopwords
 def borrarStopwords(tweet):
     lista_stopwords = ["a", "in", "my"]
     tweet_sin_sw = ""
 
+    # Para separar la frase por espacios y verificar que cada palabra no sea SW
     for palabra in tweet.split():
          if palabra not in lista_stopwords:
             tweet_sin_sw = tweet_sin_sw  + palabra + " "
@@ -16,7 +23,7 @@ class User:
     def __init__(self, number, friends, tweets, sentiment):
         self.number = number
         self.friends = friends
-        self.tweet = tweet
+        self.tweets = tweets
         self.sentiment = sentiment
         self.next = None
 
@@ -34,14 +41,14 @@ class Tweet:
 class UserList:
     def __init__(self):
         self.head = None
-
+    # Funcion para recorrer la lista
     def print(self):
         current = self.head
         while current is not None:
             print(current.number, end=" ")
             print("")
             current = current.next
-
+    # Funcion para evitar duplicidad de usuarios
     def buscar(self, number):
         current = self.head
         while current is not None:
@@ -65,7 +72,7 @@ class UserList:
                     current = current.next
                 current.next = user
 
-# Lista de usuarios y sus funciones
+# Lista de tweets y sus funciones
 class TweetList:
     def __init__(self):
         self.head = None
@@ -73,49 +80,29 @@ class TweetList:
     def print(self):
         current = self.head
         while current is not None:
-            print(current.number, end=" ")
+            print(current.numero, end=" ") 
             print("")
             current = current.next
 
     def buscar(self, number):
         current = self.head
         while current is not None:
-            if current.number == number:
+            if current.numero == number: 
                 return 1
             current = current.next
         return 0
-
-    # Buscar en todos los tweets una lista de palabras (PENDIENTE)
-    def buscarTweets(self, lista_palabras):
-        lista_tweets_encontrados = []
-        current = self.head
-        # Recorrer tweets
-        while current is not None:
-            # Borramos las stopwords del tweet actual
-            current_tweet_description = borrarStopwords(current.description)
-            # Recorremos cada palabra del tweet
-            for palabra in tweet.split():
-                # En caso de encontrar en el tweet la palabra buscada, agregamos su numero a la lista de tweets encontrados
-                if lista_palabras in current_tweet_description:
-                    # Verificar que el numero no se encuentre repetido en nuestra lista_tweets_encontrados
-                    lista_tweets_encontrados = lista_tweets_encontrados.append(current.number)
-            current = current.next
-        return lista_tweets_encontrados
-
-    # Agregar usuario al final de la lista
-    def insert(self, tweet):
-        # Si la lista está vacia
+        
+    def insert(self, number_id):
+        nuevo_nodo = NodoIndice(number_id)
         if self.head is None:
-            self.head = tweet
+            self.head = nuevo_nodo
         else:
-            #Si no existe en la lista
-            existe = self.buscar(tweet.number)
+            existe = self.buscar(number_id)
             if existe == 0:
-                # Si no existe en la lista, agregar al final
                 current = self.head
                 while current.next is not None:
                     current = current.next
-                current.next = tweet
+                current.next = nuevo_nodo
 
 # Leer archivo y guardar sus datos en una lista
 with open('tweet_sentiment.csv', mode='r') as file:
@@ -130,20 +117,41 @@ with open('tweet_sentiment.csv', mode='r') as file:
 user_list = UserList()
 user_number = 1
 contador = 0
+
+# Indice Invertido
+indice_invertido_palabras = {}
 #Por cada 5 tweets en el data_list crear un usuario
 for data in data_list:
     friend_list = UserList()
     tweet_list = TweetList()
-    tweet = data.get("tweet")
+    # Extraccion de datos
+    tweet_original = str(data.get("tweet")).lower()
     sentiment = data.get("sentiment")
+    # Filtrado de palabras SW
+    tweet_limpio = borrarStopwords(tweet_original)
+    palabras_sueltas = tweet_limpio.split()
+    # Construccion del indice
+    for palabra in palabras_sueltas:
+        # Si la palabra no existe en el indice
+        if palabra not in indice_invertido_palabras:
+            nueva_lista = TweetList()
+            nueva_lista.insert(user_number)
+            indice_invertido_palabras[palabra] = nueva_lista
+        # Si la palabra ya existe en el indice
+        else:
+            lista_recuperada = indice_invertido_palabras [palabra]
+            lista_recuperada.insert (user_number)
+    # Se crea el usuario con su informacion y listas vacias asociadas
     user = User(user_number, friend_list, tweet_list, sentiment)
     user_list.insert(user)
     contador = contador + 1
+    # Cada 5 tweets se pasa al siguiente usuario
     if contador >= 5:
         # Siguiente usuario
         user_number = user_number + 1
         contador = 0
 
+### Pruebas ###
 # Recorrer lista de usuarios
 print("Lista de usuarios: ")
 print("")
@@ -153,3 +161,13 @@ user_list.print()
 tweet = "found a raccoon in my house"
 tweet = borrarStopwords(tweet)
 print(tweet)
+
+print("Busqueda")
+# Palabra para buscar en el indice invertido
+palabra_buscada = "hate"
+
+if palabra_buscada in indice_invertido_palabras:
+    print(f"La palabra '{palabra_buscada}' está en los siguientes IDs")
+    indice_invertido_palabras[palabra_buscada].print()
+else:
+    print(f"La palabra '{palabra_buscada}' no se encontró en ningún post.")
