@@ -16,18 +16,52 @@ def borrarStopwords(tweet):
     for palabra in tweet.split():
          if palabra not in lista_stopwords:
             tweet_sin_sw = tweet_sin_sw  + palabra + " "
-    return tweet_sin_sw
+    return tweet_sin_sw.strip() # .strip() elimina el espacio final sobrante
 
-# Clase usuario - lista enlazada simple
+# Nuevas clases de amigos (Lista de Adyacencia)
+class FriendNode:
+    def __init__(self, friend_id):
+        self.friend_id = friend_id
+        self.next = None
+
+class FriendList:
+    def __init__(self):
+        self.head = None
+
+    def insert(self, friend_id):
+        nuevo_nodo = FriendNode(friend_id)
+        if self.head is None:
+            self.head = nuevo_nodo
+        else:
+            current = self.head
+            while current is not None:
+                if current.friend_id == friend_id:
+                    return # Evita agregar amigos duplicados
+                if current.next is None:
+                    break
+                current = current.next
+            current.next = nuevo_nodo
+
+    def print(self):
+        current = self.head
+        if current is None:
+            print("No tiene amigos registrados.")
+            return
+        while current is not None:
+            print(current.friend_id, end=" ")
+            current = current.next
+        print("")
+
+# Clase usuario (lista enlazada simple)
 class User:
     def __init__(self, number, friends, tweets, sentiment):
         self.number = number
-        self.friends = friends
+        self.friends = friends # Ahora recibe una instancia de FriendList
         self.tweets = tweets
         self.sentiment = sentiment
         self.next = None
 
-# Clase tweet - lista enlazada simple
+# Clase tweet (lista enlazada simple)
 class Tweet:
     def __init__(self, number, description, posted_by, likes, liked_by):
         self.number = number
@@ -41,14 +75,14 @@ class Tweet:
 class UserList:
     def __init__(self):
         self.head = None
-    # Funcion para recorrer la lista
+        
     def print(self):
         current = self.head
         while current is not None:
             print(current.number, end=" ")
-            print("")
             current = current.next
-    # Funcion para evitar duplicidad de usuarios
+        print("")
+        
     def buscar(self, number):
         current = self.head
         while current is not None:
@@ -57,16 +91,21 @@ class UserList:
             current = current.next
         return 0
 
-    # Agregar usuario al final de la lista
+    # ver atributos del nodo
+    def obtener_usuario(self, number):
+        current = self.head
+        while current is not None:
+            if current.number == number:
+                return current
+            current = current.next
+        return None
+
     def insert(self, user):
-        # Si la lista está vacia
         if self.head is None:
             self.head = user
         else:
-            #Si no existe en la lista
             existe = self.buscar(user.number)
             if existe == 0:
-                # Si no existe en la lista, agregar al final
                 current = self.head
                 while current.next is not None:
                     current = current.next
@@ -81,8 +120,8 @@ class TweetList:
         current = self.head
         while current is not None:
             print(current.numero, end=" ") 
-            print("")
             current = current.next
+        print("")
 
     def buscar(self, number):
         current = self.head
@@ -105,14 +144,23 @@ class TweetList:
                 current.next = nuevo_nodo
 
 # Leer archivo y guardar sus datos en una lista
-with open('tweet_sentiment.csv', mode='r') as file:
-    # Crear diccionario con la libreria csv
-    csv_reader = csv.DictReader(file)
-    # Inicializar lista de datos
-    data_list = []
-    # Cada fila se agregará en la lista de datos data_list
-    for row in csv_reader:
-        data_list.append(row)
+data_list = []
+try:
+    with open('tweet_sentiment.csv', mode='r', encoding='utf-8') as file:
+        csv_reader = csv.DictReader(file)
+        for row in csv_reader:
+            data_list.append(row)
+except FileNotFoundError:
+    # Agrego este bloque para que no falle prueba si no esta el archivo a mano
+    print("Aviso: 'tweet_sentiment.csv' no encontrado. Se usarán datos simulados para la prueba.\n")
+    data_list = [
+        {"tweet": "I hate bugs", "sentiment": "negative"},
+        {"tweet": "found a raccoon in my house", "sentiment": "neutral"},
+        {"tweet": "I hate traffic", "sentiment": "negative"},
+        {"tweet": "I like python", "sentiment": "positive"},
+        {"tweet": "hate late trains", "sentiment": "negative"},
+        {"tweet": "another tweet to trigger user 2", "sentiment": "neutral"}
+    ]
 
 user_list = UserList()
 user_number = 1
@@ -120,34 +168,32 @@ contador = 0
 
 # Indice Invertido
 indice_invertido_palabras = {}
-#Por cada 5 tweets en el data_list crear un usuario
+
 for data in data_list:
-    friend_list = UserList()
+    # Modificado: Instanciamos la nueva clase de lista de amigos
+    friend_list = FriendList()
     tweet_list = TweetList()
-    # Extraccion de datos
+    
     tweet_original = str(data.get("tweet")).lower()
     sentiment = data.get("sentiment")
-    # Filtrado de palabras SW
+    
     tweet_limpio = borrarStopwords(tweet_original)
     palabras_sueltas = tweet_limpio.split()
-    # Construccion del indice
+    
     for palabra in palabras_sueltas:
-        # Si la palabra no existe en el indice
         if palabra not in indice_invertido_palabras:
             nueva_lista = TweetList()
             nueva_lista.insert(user_number)
             indice_invertido_palabras[palabra] = nueva_lista
-        # Si la palabra ya existe en el indice
         else:
-            lista_recuperada = indice_invertido_palabras [palabra]
-            lista_recuperada.insert (user_number)
-    # Se crea el usuario con su informacion y listas vacias asociadas
+            lista_recuperada = indice_invertido_palabras[palabra]
+            lista_recuperada.insert(user_number)
+            
     user = User(user_number, friend_list, tweet_list, sentiment)
     user_list.insert(user)
+    
     contador = contador + 1
-    # Cada 5 tweets se pasa al siguiente usuario
     if contador >= 5:
-        # Siguiente usuario
         user_number = user_number + 1
         contador = 0
 
@@ -171,3 +217,21 @@ if palabra_buscada in indice_invertido_palabras:
     indice_invertido_palabras[palabra_buscada].print()
 else:
     print(f"La palabra '{palabra_buscada}' no se encontró en ningún post.")
+
+# Agregar y Buscar Amigos
+id_a_buscar = 1
+usuario_encontrado = user_list.obtener_usuario(id_a_buscar)
+
+if usuario_encontrado is not None:
+    print(f"Usuario {id_a_buscar} encontrado exitosamente en la lista enlazada.")
+    
+    # Simulamos que le agregamos amigos (los ID de otros usuarios)
+    print(f"Añadiendo amigos al Usuario {id_a_buscar}...")
+    usuario_encontrado.friends.insert(2)
+    usuario_encontrado.friends.insert(5)
+    usuario_encontrado.friends.insert(10)
+    
+    print(f"IDs de los amigos del Usuario {id_a_buscar}:")
+    usuario_encontrado.friends.print()
+else:
+    print(f"Error: El usuario {id_a_buscar} no se encontró en la base de datos.")
