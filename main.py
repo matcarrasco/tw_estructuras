@@ -198,19 +198,21 @@ for data in data_list:
         contador = 0
 
 ### Pruebas ###
+print("--- Pruebas --- \n")
 # Recorrer lista de usuarios
-print("Lista de usuarios: ")
-print("")
+print("1. Lista de usuarios: ")
 user_list.print()
 
 # Borrar stopwords de un tweet
+print("\n2. Eliminar stopwords: ")
 tweet = "found a raccoon in my house"
+print(f"Tweet original: {tweet}")
 tweet = borrarStopwords(tweet)
-print(tweet)
+print(f"Palabras a buscar: {tweet}")
 
-print("Busqueda")
+print("\n3. Busqueda")
 # Palabra para buscar en el indice invertido
-palabra_buscada = "hate"
+palabra_buscada = "this"
 
 if palabra_buscada in indice_invertido_palabras:
     print(f"La palabra '{palabra_buscada}' está en los siguientes IDs")
@@ -218,7 +220,62 @@ if palabra_buscada in indice_invertido_palabras:
 else:
     print(f"La palabra '{palabra_buscada}' no se encontró en ningún post.")
 
+# Busqueda de multiples terminos
+print("\n4. Búsqueda de multiples terminos")
+frase_buscada = "sick of this" 
+frase_limpia = borrarStopwords(frase_buscada.lower())
+palabras_a_buscar = frase_limpia.split()
+
+if len(palabras_a_buscar) == 0:
+    print("La búsqueda está vacía o solo contiene stopwords.")
+else:
+    # Verificar que todas las palabras esten en el indice
+    todas_existen = True
+    for palabra in palabras_a_buscar:
+        if palabra not in indice_invertido_palabras:
+            todas_existen = False
+            break # Se rompe el ciclo si falta alguna palabra
+    # Si no existe post con la frase escrita      
+    if not todas_existen:
+        print(f"No hay posts que contengan todas las palabras de: '{frase_buscada}'")
+    
+    else:
+        print(f"Los IDs que contienen todas las palabras '{frase_buscada}' son:")
+        
+        # Se toma la lista enlazada de la primera palabra
+        primera_palabra = palabras_a_buscar[0]
+        lista_base = indice_invertido_palabras[primera_palabra]
+        
+        current = lista_base.head
+        encontrado_al_menos_uno = False
+        
+        # Se recorre la lista base
+        while current is not None:
+            id_actual = current.numero
+            esta_en_todas = True
+            
+            # Se verifica que el ID este en todas las palabras a buscar
+            for i in range(1, len(palabras_a_buscar)):
+                otra_palabra = palabras_a_buscar[i]
+                lista_otra = indice_invertido_palabras[otra_palabra]
+                
+                if lista_otra.buscar(id_actual) == 0:
+                    esta_en_todas = False
+                    break # Si no esta en una lista, se descarta el ID
+                    
+            # Si el ID revisado sobrevivio al "for" entonces existe la frase
+            if esta_en_todas:
+                print(id_actual, end=" ")
+                encontrado_al_menos_uno = True
+                
+            current = current.next
+        # En caso de que existan las palabras pero no en un mismo post
+        if not encontrado_al_menos_uno:
+            print("Ninguno (las palabras existen en la red, pero nunca juntas en el mismo post).")
+        print("")
+
 # Agregar y Buscar Amigos
+print("\n5. Buscar amigos de un usuario")
 id_a_buscar = 1
 usuario_encontrado = user_list.obtener_usuario(id_a_buscar)
 
