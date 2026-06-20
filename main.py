@@ -1,22 +1,14 @@
 # Importar la libreria para leer los archivos csv
 import csv
 
+##################################################################################################
+# CLASES
+##################################################################################################
 # Estructura para el indice invertido
 class NodoIndice:
     def __init__(self, numero_id):
         self.numero = numero_id
         self.next = None
-        
-# Función para borrar stopwords
-def borrarStopwords(tweet):
-    lista_stopwords = ["a", "in", "my"]
-    tweet_sin_sw = ""
-
-    # Para separar la frase por espacios y verificar que cada palabra no sea SW
-    for palabra in tweet.split():
-         if palabra not in lista_stopwords:
-            tweet_sin_sw = tweet_sin_sw  + palabra + " "
-    return tweet_sin_sw.strip() # .strip() elimina el espacio final sobrante
 
 # Nuevas clases de amigos (Lista de Adyacencia)
 class FriendNode:
@@ -208,6 +200,23 @@ class TweetList:
                     current = current.next
                 current.next = nuevo_nodo
 
+##################################################################################################
+# FUNCIONES
+##################################################################################################
+# Funcion para borrar stopwords
+def borrarStopwords(tweet):
+    lista_stopwords = ["a", "in", "my"]
+    tweet_sin_sw = ""
+
+    # Para separar la frase por espacios y verificar que cada palabra no sea SW
+    for palabra in tweet.split():
+         if palabra not in lista_stopwords:
+            tweet_sin_sw = tweet_sin_sw  + palabra + " "
+    return tweet_sin_sw.strip() # .strip() elimina el espacio final sobrante
+
+##################################################################################################
+# CARGA Y PROCESAMIENTO DE DATOS
+##################################################################################################
 # Leer archivo y guardar sus datos en una lista
 data_list = []
 try:
@@ -231,8 +240,10 @@ user_list = UserList()
 user_number = 1
 contador = 0
 
-# Indice Invertido
-indice_invertido_palabras = {}
+##################################################################################################
+# INDICE INVERTIDO (ENTREGA I)
+##################################################################################################
+indiceInvertidoPalabras = {}
 
 for data in data_list:
     # Modificado: Instanciamos la nueva clase de lista de amigos
@@ -246,12 +257,12 @@ for data in data_list:
     palabras_sueltas = tweet_limpio.split()
     
     for palabra in palabras_sueltas:
-        if palabra not in indice_invertido_palabras:
+        if palabra not in indiceInvertidoPalabras:
             nueva_lista = TweetList()
             nueva_lista.insert(user_number)
-            indice_invertido_palabras[palabra] = nueva_lista
+            indiceInvertidoPalabras[palabra] = nueva_lista
         else:
-            lista_recuperada = indice_invertido_palabras[palabra]
+            lista_recuperada = indiceInvertidoPalabras[palabra]
             lista_recuperada.insert(user_number)
             
     user = User(user_number, friend_list, tweet_list, sentiment)
@@ -262,118 +273,109 @@ for data in data_list:
         user_number = user_number + 1
         contador = 0
 
-### Pruebas ###
-# Recorrer lista de usuarios
-print("Lista de usuarios: ")
-print("")
-user_list.print()
-
-# Borrar stopwords de un tweet
-tweet = "found a raccoon in my house"
-tweet = borrarStopwords(tweet)
-print(tweet)
-
-print("Busqueda")
-# Palabra para buscar en el indice invertido
-palabra_buscada = "hate"
-
-if palabra_buscada in indice_invertido_palabras:
-    print(f"La palabra '{palabra_buscada}' está en los siguientes IDs")
-    indice_invertido_palabras[palabra_buscada].print()
-else:
-    print(f"La palabra '{palabra_buscada}' no se encontró en ningún post.")
-
-# Agregar y Buscar Amigos
-id_a_buscar = 1
-usuario_encontrado = user_list.obtener_usuario(id_a_buscar)
-
-if usuario_encontrado is not None:
-    print(f"Usuario {id_a_buscar} encontrado exitosamente en la lista enlazada.")
+##################################################################################################
+# PRUEBAS
+##################################################################################################
+while True:
+    print("\n" + "="*50)
+    print("--- MENÚ DE PRUEBAS - ESTRUCTURAS DE DATOS ---")
+    print("="*50)
+    print("1. Mostrar usuarios")
+    print("2. Limpieza de stopwords")
+    print("3. Busqueda palabra simple")
+    print("4. Búsqueda de frase múltiple")
+    print("5. Ver Grafo No Dirigido (Amigos del Usuario 1 y 2)")
+    print("6. Ver Grados de Separación (BFS)")
+    print("0. Salir")
+    print("="*50)
     
-    # Simulamos que le agregamos amigos (los ID de otros usuarios)
-    print(f"Añadiendo amigos al Usuario {id_a_buscar}...")
-    usuario_encontrado.friends.insert(2)
-    usuario_encontrado.friends.insert(5)
-    usuario_encontrado.friends.insert(10)
-    
-    print(f"IDs de los amigos del Usuario {id_a_buscar}:")
-    usuario_encontrado.friends.print()
-else:
-    print(f"Error: El usuario {id_a_buscar} no se encontró en la base de datos.")
+    opcion = input("Elige una opción: ")
 
+    if opcion == "1":
+        print("\nLista de usuarios:")
+        user_list.print()
 
-#####################################################################################################################
-#### Busqueda de multiples terminos ####
-print("Búsqueda de multiples terminos")
-frase_buscada = "Fantastic experience!" 
-frase_limpia = borrarStopwords(frase_buscada.lower())
-palabras_a_buscar = frase_limpia.split()
+    elif opcion == "2":
+        tweet = "found a raccoon in my house"
+        print(f"\nOriginal: {tweet}")
+        print(f"Limpio:   {borrarStopwords(tweet)}")
 
-if len(palabras_a_buscar) == 0:
-    print("La búsqueda está vacía o solo contiene stopwords.")
-else:
-    # Verificar que todas las palabras esten en el indice
-    todas_existen = True
-    for palabra in palabras_a_buscar:
-        if palabra not in indice_invertido_palabras:
-            todas_existen = False
-            break # Se rompe el ciclo si falta alguna palabra
-    # Si no existe post con la frase escrita      
-    if not todas_existen:
-        print(f"No hay posts que contengan todas las palabras de: '{frase_buscada}'")
-    
-    else:
-        print(f"Los IDs que contienen todas las palabras '{frase_buscada}' son:")
-        
-        # Se toma la lista enlazada de la primera palabra
-        primera_palabra = palabras_a_buscar[0]
-        lista_base = indice_invertido_palabras[primera_palabra]
-        
-        current = lista_base.head
-        encontrado_al_menos_uno = False
-        
-        # Se recorre la lista base
-        while current is not None:
-            id_actual = current.numero
-            esta_en_todas = True
+    elif opcion == "3":
+        palabraBuscada = input("\nPalabra a buscar (ej. hate): ").lower()
+        if palabraBuscada in indiceInvertidoPalabras:
+            print(f"La palabra '{palabraBuscada}' está en los siguientes IDs:")
+            indiceInvertidoPalabras[palabraBuscada].print()
+        else:
+            print(f"La palabra '{palabraBuscada}' no se encontró.")
+
+    elif opcion == "4":
+        fraseBuscada = input("\nFrase a buscar (ej. sick of this): ")
+        fraseLimpia = borrarStopwords(fraseBuscada.lower())
+        palabrasSeparadas = fraseLimpia.split()
+
+        if len(palabrasSeparadas) == 0:
+            print("La búsqueda está vacía o solo contiene stopwords.")
+        else:
+            todasExisten = True
+            for palabra in palabrasSeparadas:
+                if palabra not in indiceInvertidoPalabras:
+                    todasExisten = False
+                    break
             
-            # Se verifica que el ID este en todas las palabras a buscar
-            for i in range(1, len(palabras_a_buscar)):
-                otra_palabra = palabras_a_buscar[i]
-                lista_otra = indice_invertido_palabras[otra_palabra]
+            if not todasExisten:
+                print(f"No hay posts que contengan todas las palabras de: '{fraseBuscada}'")
+            else:
+                print(f"Los IDs que contienen todas las palabras son:")
+                lista_base = indiceInvertidoPalabras[palabrasSeparadas[0]]
+                current = lista_base.head
+                encontrado_al_menos_uno = False
                 
-                if lista_otra.buscar(id_actual) == 0:
-                    esta_en_todas = False
-                    break # Si no esta en una lista, se descarta el ID
-                    
-            # Si el ID revisado sobrevivio al "for" entonces existe la frase
-            if esta_en_todas:
-                print(id_actual, end=" ")
-                encontrado_al_menos_uno = True
+                while current is not None:
+                    id_actual = current.numero
+                    esta_en_todas = True
+                    for i in range(1, len(palabrasSeparadas)):
+                        if indiceInvertidoPalabras[palabrasSeparadas[i]].buscar(id_actual) == 0:
+                            esta_en_todas = False
+                            break
+                    if esta_en_todas:
+                        print(id_actual, end=" ")
+                        encontrado_al_menos_uno = True
+                    current = current.next
                 
-            current = current.next
-        # En caso de que existan las palabras pero no en un mismo post
-        if not encontrado_al_menos_uno:
-            print("Ninguno (las palabras existen en la red, pero nunca juntas en el mismo post).")
-        print("")
+                if not encontrado_al_menos_uno:
+                    print("Las palabras existen, pero no en un mismo post.")
+                print("")
 
-###############################################################################
-# NUEVO!!!!! PRUEBAS ENTREGA II
-print ("--- Prueba de Grafo no dirigido ---")
-user_list.crearAmistad(1,1)
-user_list.crearAmistad(1,2)
-user_list.crearAmistad(2,4)
-user_list.crearAmistad(4,5)
-user_list.crearAmistad(5,6)
+    elif opcion == "5":
+        print("\n--- Prueba de Grafo no dirigido ---")
+        user_list.crearAmistad(1,1)
+        user_list.crearAmistad(1,2)
+        user_list.crearAmistad(2,4)
+        user_list.crearAmistad(4,5)
+        user_list.crearAmistad(5,6)
+        
+        print("Amigos del usuario 1:")
+        user1 = user_list.obtener_usuario(1)
+        if user1: user1.friends.print()
+        
+        print("Amigos del usuario 2:")
+        user2 = user_list.obtener_usuario(2)
+        if user2: user2.friends.print()
 
-print ("Amigos del usuario 1:")
-user1 = user_list.obtener_usuario(1)
-if user1: user1.friends.print()
+    elif opcion == "6":
+        print("\n--- Prueba Grados de separacion ---")
+        # Nos aseguramos de tener la red creada antes del BFS
+        user_list.crearAmistad(1,2)
+        user_list.crearAmistad(2,4)
+        user_list.crearAmistad(4,5)
+        user_list.crearAmistad(5,6)
+        
+        id_raiz = int(input("Ingresa el ID del usuario raíz (ej. 1): "))
+        user_list.gradosSeparacion(id_raiz)
 
-print ("Amigos del usuario 2:")
-user2 = user_list.obtener_usuario(2)
-if user2: user2.friends.print()
+    elif opcion == "0":
+        print("\nSaliendo del programa...")
+        break
 
-
-print ("--- Prueba Grados de separacion ---")
-user_list.gradosSeparacion(1)
+    else:
+        print("\nOpción inválida. Intenta nuevamente.")
