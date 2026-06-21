@@ -1,39 +1,41 @@
 # Importar la libreria para leer los archivos csv
 import csv
-
-##################################################################################################
 # CLASES
-##################################################################################################
-# Estructura para el indice invertido
+# Nodo generico
 class NodoIndice:
     def __init__(self, numero_id):
         self.numero = numero_id
         self.next = None
-
-# Nuevas clases de amigos (Lista de Adyacencia)
+# Nodo amigo
 class FriendNode:
     def __init__(self, friend_id):
         self.friend_id = friend_id
         self.next = None
-
+# Funciones para lista de amigos
 class FriendList:
+    # Inicializar lista
     def __init__(self):
         self.head = None
-
+    # Insertar amigo al final de la lista
     def insert(self, friend_id):
         nuevo_nodo = FriendNode(friend_id)
         if self.head is None:
             self.head = nuevo_nodo
         else:
             current = self.head
+            # Recorrer lista hasta el final
             while current is not None:
+                # Evita agregar amigos duplicados
                 if current.friend_id == friend_id:
-                    return # Evita agregar amigos duplicados
+                    return
+                # Si no tiene siguiente, es el ultimo nodo de la lista
+                # entonces terminamos el ciclo
                 if current.next is None:
                     break
                 current = current.next
+            # Agregar nodo al final de la lista
             current.next = nuevo_nodo
-
+    # Mostrar lista de amigos
     def print(self):
         current = self.head
         if current is None:
@@ -43,8 +45,7 @@ class FriendList:
             print(current.friend_id, end=" ")
             current = current.next
         print("")
-
-# Clase usuario (lista enlazada simple)
+# Nodo usuario
 class User:
     def __init__(self, number, friends, tweets, sentiment):
         self.number = number
@@ -52,8 +53,7 @@ class User:
         self.tweets = tweets
         self.sentiment = sentiment
         self.next = None
-
-# Clase tweet (lista enlazada simple)
+# Nodo tweet
 class Tweet:
     def __init__(self, number, description, posted_by, likes, liked_by):
         self.number = number
@@ -62,19 +62,19 @@ class Tweet:
         self.likes = likes
         self.liked_by = liked_by
         self.next = None
-
-# Lista de usuarios y sus funciones
+# Funciones para lista de usuarios
 class UserList:
+    # Inicializar
     def __init__(self):
         self.head = None
-        
+    # Mostrar lista de usuarios
     def print(self):
         current = self.head
         while current is not None:
             print(current.number, end=" ")
             current = current.next
         print("")
-        
+    # Buscar si existe un usuario por numero
     def buscar(self, number):
         current = self.head
         while current is not None:
@@ -82,8 +82,7 @@ class UserList:
                 return 1
             current = current.next
         return 0
-
-    # ver atributos del nodo
+    # Obtener usuario por numero
     def obtener_usuario(self, number):
         current = self.head
         while current is not None:
@@ -91,7 +90,7 @@ class UserList:
                 return current
             current = current.next
         return None
-
+    # Insertar un usuario a la lista de usuarios
     def insert(self, user):
         if self.head is None:
             self.head = user
@@ -102,62 +101,59 @@ class UserList:
                 while current.next is not None:
                     current = current.next
                 current.next = user
-    # NUEVO!!! ENTREGA II
+    # ENTREGA II
+    # Crear amigo de usuario en la lista de usuarios
     def crearAmistad (self, idUser1, idUser2):
+        # Buscar usuarios por id
         user1 = self.obtener_usuario(idUser1)
         user2 = self.obtener_usuario(idUser2)
-
-        # En caso de que los usuarios ingresados no existan
+        # Verificar que ambos usuarios existan
         if user1 is None or user2 is None:
             print ("Uno de los amigos especificados no existe")
             return
-        
+        # Verificar que ambos usuarios no sean el mismo
         if idUser1 == idUser2:
             print ("Un usuario no puede ser su propio amigo")
             return
-        
-        # En caso de que salga todo bien
+        # Agregar a la lista de amigos de ambos usuarios
         user1.friends.insert(idUser2)
         user2.friends.insert(idUser1)
-        print("Amistad creada") # Mensaje de log para verificar que funcione
-    
+        print("Amistad creada")
+    # Mostrar lista de amigos de un usuario hasta 3er grado
     def gradosSeparacion(self, root_id):
-        # Se verifica que el usuario raiz exista
+        # Verificar que el usuario raiz exista
         root_user = self.obtener_usuario(root_id)
+        # Si no existe
         if root_user is None:
             print ("El usuario ingresado no existe")
             return
-        # Se inicializa la estructura auxiliar de BFS (cola)
+        # Inicializar algoritmo BFS con cola
         visitados = set()
         cola = []
-
         # Para separar los resultados
         resultados = {1:[], 2:[], 3:[]}
-        
-        # Caso base
-        cola.append ((root_id, 0))
+        # Nodo raiz es el usuario del que buscamos sus amistades
+        cola.append((root_id, 0))
         visitados.add(root_id)
-
-        # Ciclo BFS
+        # Ciclo BFS 
+        # Recorrer mientras hayan elementos en la cola
         while len(cola) > 0:
             currentId, currentGrado = cola.pop(0)
-            # Si es grado 1, 2 o 3 se añade en la respectiva lista
+            # Si es de grado 1 o 2 se añade a la lista de resultados
             if currentGrado > 0:
                 resultados[currentGrado].append(currentId)
-            
-            # Si se esta procesando a uno de grado 3 se abandona el ciclo
+            # Si es de grado 3 se abandona el ciclo
             if currentGrado == 3:
                 continue
-            
-            # Se recorren los amigos del usuario actual
+            # Se traen los datos del usuario
             current_user = self.obtener_usuario(currentId)
+            # Si el usuario existe y la lista de amigos no está vacía
             if current_user is not None and current_user.friends.head is not None:
-                # Se recorre la friendlist de la entrega I
                 amigoNodo = current_user.friends.head
+                # Se recorre la lista de amigos hasta el final
                 while amigoNodo is not None:
                     amigoId = amigoNodo.friend_id
-
-                    # Si aun no se descrubre el amigo, se marca y se encola
+                    # Si aun no se descubre el amigo, se marca y se encola
                     if amigoId not in visitados:
                         visitados.add(amigoId)
                         cola.append((amigoId, currentGrado + 1))
@@ -166,20 +162,18 @@ class UserList:
         print(f"1° Grado: {resultados[1]}")
         print(f"2° Grado: {resultados[2]}")
         print(f"3° Grado: {resultados[3]}")
-
-
 # Lista de tweets y sus funciones
 class TweetList:
     def __init__(self):
         self.head = None
-
+    # Mostrar tweets
     def print(self):
         current = self.head
         while current is not None:
             print(current.numero, end=" ") 
             current = current.next
         print("")
-
+    # Verificar si existe el tweet
     def buscar(self, number):
         current = self.head
         while current is not None:
@@ -187,7 +181,7 @@ class TweetList:
                 return 1
             current = current.next
         return 0
-        
+    # Insertar un tweet a la lista de tweets
     def insert(self, number_id):
         nuevo_nodo = NodoIndice(number_id)
         if self.head is None:
@@ -199,33 +193,30 @@ class TweetList:
                 while current.next is not None:
                     current = current.next
                 current.next = nuevo_nodo
-
-##################################################################################################
-# FUNCIONES
-##################################################################################################
+# FUNCIONES GLOBALES
 # Funcion para borrar stopwords
 def borrarStopwords(tweet):
+    # Lista de stopwords
     lista_stopwords = ["a", "in", "my"]
     tweet_sin_sw = ""
-
-    # Para separar la frase por espacios y verificar que cada palabra no sea SW
+    # Por cada palabra en el tweet
     for palabra in tweet.split():
-         if palabra not in lista_stopwords:
+        # Si la palabra no es SW, se acumula en tweet_sin_sw
+        if palabra not in lista_stopwords:
             tweet_sin_sw = tweet_sin_sw  + palabra + " "
-    return tweet_sin_sw.strip() # .strip() elimina el espacio final sobrante
-
-##################################################################################################
+    # Devolver eliminando el espacio final sobrante
+    return tweet_sin_sw.strip() 
 # CARGA Y PROCESAMIENTO DE DATOS
-##################################################################################################
 # Leer archivo y guardar sus datos en una lista
 data_list = []
 try:
+    # Abrir el archivo tweet_sentiment.csv y guardar datos en data_list
     with open('tweet_sentiment.csv', mode='r', encoding='utf-8') as file:
         csv_reader = csv.DictReader(file)
         for row in csv_reader:
             data_list.append(row)
 except FileNotFoundError:
-    # Agrego este bloque para que no falle prueba si no esta el archivo a mano
+    # Si no existe el archivo
     print("Aviso: 'tweet_sentiment.csv' no encontrado. Se usarán datos simulados para la prueba.\n")
     data_list = [
         {"tweet": "I hate bugs", "sentiment": "negative"},
@@ -235,51 +226,50 @@ except FileNotFoundError:
         {"tweet": "hate late trains", "sentiment": "negative"},
         {"tweet": "another tweet to trigger user 2", "sentiment": "neutral"}
     ]
-
+# Crear una lista de Usuarios
 user_list = UserList()
 user_number = 1
 contador = 0
-
-##################################################################################################
 # INDICE INVERTIDO (ENTREGA I)
-##################################################################################################
+# Lista de palabras
 indiceInvertidoPalabras = {}
-
+# Recorrer datos del archivo
 for data in data_list:
-    # Modificado: Instanciamos la nueva clase de lista de amigos
+    # Creamos lista de amigos y lista de tweets
     friend_list = FriendList()
     tweet_list = TweetList()
-    
+    # El tweet queda en minuscula
     tweet_original = str(data.get("tweet")).lower()
+    # Obtener el sentimiento del tweet
     sentiment = data.get("sentiment")
-    
+    # Eliminar las SW del tweet
     tweet_limpio = borrarStopwords(tweet_original)
+    # Eliminar el espacio al final del tweet
     palabras_sueltas = tweet_limpio.split()
-    
+    # Recorrer palabras en el tweet
     for palabra in palabras_sueltas:
+        # Si la palabra no existe en el indice
+        # Se agrega al final de la lista de tweets y de una lista de palabras
         if palabra not in indiceInvertidoPalabras:
             nueva_lista = TweetList()
             nueva_lista.insert(user_number)
             indiceInvertidoPalabras[palabra] = nueva_lista
         else:
+            # Si existe en el indice, pasar
             lista_recuperada = indiceInvertidoPalabras[palabra]
             lista_recuperada.insert(user_number)
-            
+    # Crear usuario e insertar al final de la lista de usuarios          
     user = User(user_number, friend_list, tweet_list, sentiment)
     user_list.insert(user)
-    
+    # Cada 5 tweets cambiamos el id del usuario
     contador = contador + 1
     if contador >= 5:
         user_number = user_number + 1
         contador = 0
-
-##################################################################################################
 # PRUEBAS
-##################################################################################################
+# Menu principal
 while True:
-    print("\n" + "="*50)
     print("--- MENÚ DE PRUEBAS - ESTRUCTURAS DE DATOS ---")
-    print("="*50)
     print("1. Mostrar usuarios")
     print("2. Limpieza de stopwords")
     print("3. Busqueda palabra simple")
@@ -287,19 +277,19 @@ while True:
     print("5. Ver Grafo No Dirigido (Amigos del Usuario 1 y 2)")
     print("6. Ver Grados de Separación (BFS)")
     print("0. Salir")
-    print("="*50)
-    
+    print("")
+    # Pedir opcion a usuario
     opcion = input("Elige una opción: ")
-
+    # Mostrar lista de usuarios
     if opcion == "1":
         print("\nLista de usuarios:")
         user_list.print()
-
+    # Limpiar las SW de un tweet
     elif opcion == "2":
         tweet = "found a raccoon in my house"
         print(f"\nOriginal: {tweet}")
         print(f"Limpio:   {borrarStopwords(tweet)}")
-
+    # Buscar una palabra en la lista de palabras
     elif opcion == "3":
         palabraBuscada = input("\nPalabra a buscar (ej. hate): ").lower()
         if palabraBuscada in indiceInvertidoPalabras:
@@ -307,12 +297,12 @@ while True:
             indiceInvertidoPalabras[palabraBuscada].print()
         else:
             print(f"La palabra '{palabraBuscada}' no se encontró.")
-
+    # Buscar mas de una palabra en la lista de palabras
     elif opcion == "4":
         fraseBuscada = input("\nFrase a buscar (ej. sick of this): ")
+        # Eliminamos stopwords de la palabra ingresada del usuario
         fraseLimpia = borrarStopwords(fraseBuscada.lower())
         palabrasSeparadas = fraseLimpia.split()
-
         if len(palabrasSeparadas) == 0:
             print("La búsqueda está vacía o solo contiene stopwords.")
         else:
@@ -321,7 +311,6 @@ while True:
                 if palabra not in indiceInvertidoPalabras:
                     todasExisten = False
                     break
-            
             if not todasExisten:
                 print(f"No hay posts que contengan todas las palabras de: '{fraseBuscada}'")
             else:
@@ -345,7 +334,7 @@ while True:
                 if not encontrado_al_menos_uno:
                     print("Las palabras existen, pero no en un mismo post.")
                 print("")
-
+    # Crear y mostrar amistades de dos usuarios
     elif opcion == "5":
         print("\n--- Prueba de Grafo no dirigido ---")
         user_list.crearAmistad(1,1)
@@ -353,29 +342,30 @@ while True:
         user_list.crearAmistad(2,4)
         user_list.crearAmistad(4,5)
         user_list.crearAmistad(5,6)
-        
+        # Mostrar todas las amistades del usuario 1
         print("Amigos del usuario 1:")
         user1 = user_list.obtener_usuario(1)
         if user1: user1.friends.print()
-        
+        # Mostrar todas las amistades del usuario 2
         print("Amigos del usuario 2:")
         user2 = user_list.obtener_usuario(2)
         if user2: user2.friends.print()
-
+    # Crear y mostrar amistades de un usuario, hasta tercer nivel
     elif opcion == "6":
         print("\n--- Prueba Grados de separacion ---")
-        # Nos aseguramos de tener la red creada antes del BFS
+        # Creamos amistades
         user_list.crearAmistad(1,2)
         user_list.crearAmistad(2,4)
         user_list.crearAmistad(4,5)
         user_list.crearAmistad(5,6)
-        
+        # Se pide el id de un usuario
         id_raiz = int(input("Ingresa el ID del usuario raíz (ej. 1): "))
+        # Función que muestra las amistades del usuario hasta tercer grado
         user_list.gradosSeparacion(id_raiz)
-
+    # Terminar ejecución del programa
     elif opcion == "0":
         print("\nSaliendo del programa...")
         break
-
+    # Numero no valido para el menu
     else:
         print("\nOpción inválida. Intenta nuevamente.")
