@@ -193,6 +193,56 @@ class TweetList:
                 while current.next is not None:
                     current = current.next
                 current.next = nuevo_nodo
+# NUEVO !!!! CLASE HASH
+class TablaHashFrecuencias:
+    def __init__(self, tamanoM):
+        self.M = tamanoM
+        # Creamos un arreglo vacío de tamaño M
+        self.tabla = [None] * tamanoM 
+        self.totalColisiones = 0 # Métrica requerida por la rúbrica
+
+    def insertar(self, palabra):
+        # 1. Calcular el índice en el arreglo
+        indice = djb2(palabra) % self.M
+        
+        # 2. Si la casilla está vacía, se inserta el primer nodo
+        if self.tabla[indice] is None:
+            self.tabla[indice] = NodoFrecuencia(palabra)
+            return
+
+        # 3. Si hay colisión (ya existe algo ahí), recorremos la lista enlazada
+        current = self.tabla[indice]
+        
+        while current is not None:
+            # Si la palabra ya existe, solo aumentamos su frecuencia
+            if current.palabra == palabra:
+                current.frecuencia += 1
+                return
+            
+            # Si llegamos al final de la lista encadenada sin hallarla, la insertamos
+            if current.next is None:
+                self.totalColisiones += 1 # Hubo un choque real
+                current.next = NodoFrecuencia(palabra)
+                return
+                
+            current = current.next
+    
+    def obtenerTopN(self, n):
+        todosLosTerminos = []
+        
+        # Recorremos cada casilla del arreglo (de 0 a M-1)
+        for i in range(self.M):
+            current = self.tabla[i]
+            # Si hay datos (y colisiones), recorremos la lista enlazada
+            while current is not None:
+                todosLosTerminos.append((current.palabra, current.frecuencia))
+                current = current.next
+                
+        # Ordenamos la lista de tuplas por la frecuencia (el elemento 1), de mayor a menor
+        todosLosTerminos.sort(key=lambda x: x[1], reverse=True)
+        
+        # Retornamos solo los primeros N elementos
+        return todosLosTerminos[:n]
 # FUNCIONES GLOBALES
 # Funcion para borrar stopwords
 def borrarStopwords(tweet):
@@ -206,6 +256,19 @@ def borrarStopwords(tweet):
             tweet_sin_sw = tweet_sin_sw  + palabra + " "
     # Devolver eliminando el espacio final sobrante
     return tweet_sin_sw.strip() 
+# NUEVO!!!! FUNCION HASH
+def djb2(palabra):
+    hashVal = 5381
+    for char in palabra:
+        # El & 0xFFFFFFFF es OBLIGATORIO en Python según el PDF para truncar a 32 bits
+        hashVal = ((hashVal * 33) + ord(char)) & 0xFFFFFFFF
+    return hashVal
+# Nodo para la lista enlazada de colisiones (Encadenamiento separado)
+class NodoFrecuencia:
+    def __init__(self, palabra):
+        self.palabra = palabra
+        self.frecuencia = 1
+        self.next = None
 # CARGA Y PROCESAMIENTO DE DATOS
 # Leer archivo y guardar sus datos en una lista
 data_list = []
@@ -233,6 +296,7 @@ contador = 0
 # INDICE INVERTIDO (ENTREGA I)
 # Lista de palabras
 indiceInvertidoPalabras = {}
+tablaFrecuencias = TablaHashFrecuencias(97)
 # Recorrer datos del archivo
 for data in data_list:
     # Creamos lista de amigos y lista de tweets
@@ -276,6 +340,7 @@ while True:
     print("4. Búsqueda de frase múltiple")
     print("5. Ver Grafo No Dirigido (Amigos del Usuario 1 y 2)")
     print("6. Ver Grados de Separación (BFS)")
+    print("7. Ver Estadísticas de Tabla Hash (Top N)")
     print("0. Salir")
     print("")
     # Pedir opcion a usuario
@@ -363,6 +428,17 @@ while True:
         # Función que muestra las amistades del usuario hasta tercer grado
         user_list.gradosSeparacion(id_raiz)
     # Terminar ejecución del programa
+    elif opcion == "7":
+        print("\n--- Estadísticas de la Tabla Hash (Entrega III) ---")
+        topN = int(input("Indique cantidad de palabras frecuentes (Ej. 5): "))  
+        resultadosTop = tablaFrecuencias.obtenerTopN(topN)
+        print(f"\nTop {topN} palabras más usadas:")
+        for posicion, (palabra, frecuencia) in enumerate(resultadosTop, start=1):
+            print(f"{posicion}. '{palabra}' (Aparece {frecuencia} veces)")
+        print("\n--- Métricas Técnicas ---")
+        print(f"Tamaño del Vocabulario (N): {len(indiceInvertidoPalabras)}")
+        print(f"Tamaño de la Tabla Hash (M): {tablaFrecuencias.M}")
+        print(f"Total de Colisiones detectadas: {tablaFrecuencias.totalColisiones}")
     elif opcion == "0":
         print("\nSaliendo del programa...")
         break
