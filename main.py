@@ -312,6 +312,7 @@ for data in data_list:
     palabras_sueltas = tweet_limpio.split()
     # Recorrer palabras en el tweet
     for palabra in palabras_sueltas:
+        tablaFrecuencias.insertar(palabra)
         # Si la palabra no existe en el indice
         # Se agrega al final de la lista de tweets y de una lista de palabras
         if palabra not in indiceInvertidoPalabras:
