@@ -130,46 +130,35 @@ class UserList:
     def gradosSeparacion(self, root_id):
         # Verificar que el usuario raiz exista
         root_user = self.obtener_usuario(root_id)
-        
         # Si no existe
         if root_user is None:
             print ("El usuario ingresado no existe")
             return
-        
         # Inicializar algoritmo BFS con cola
         visitados = set()
         cola = []
         # Para separar los resultados
         resultados = {1:[], 2:[], 3:[]}
-        
         # Nodo raiz es el usuario del que buscamos sus amistades
         cola.append((root_id, 0))
         visitados.add(root_id)
-        
-        # Ciclo BFS 
-        # Recorrer mientras hayan elementos en la cola
+        # Ciclo BFS - Recorrer mientras hayan elementos en la cola
         while len(cola) > 0:
             currentId, currentGrado = cola.pop(0)
-            
             # Si es de grado 1 o 2 se añade a la lista de resultados
             if currentGrado > 0:
                 resultados[currentGrado].append(currentId)
-            
             # Si es de grado 3 se abandona el ciclo
             if currentGrado == 3:
                 continue
-            
             # Se traen los datos del usuario
-            current_user = self.obtener_usuario(currentId)
-            
+            current_user = self.obtener_usuario(currentId)  
             # Si el usuario existe y la lista de amigos no está vacía
             if current_user is not None and current_user.friends.head is not None:
-                amigoNodo = current_user.friends.head
-                
+                amigoNodo = current_user.friends.head       
                 # Se recorre la lista de amigos hasta el final
                 while amigoNodo is not None:
                     amigoId = amigoNodo.friend_id
-                    
                     # Si aun no se descubre el amigo, se marca y se encola
                     if amigoId not in visitados:
                         visitados.add(amigoId)
@@ -225,7 +214,7 @@ class TweetList:
                     current = current.next
                 current.next = nuevo_nodo
 
-# Nodo para la lista enlazada de colisiones (Encadenamiento separado)
+# Nodo para la lista enlazada de colisiones
 class NodoFrecuencia:
     def __init__(self, palabra):
         self.palabra = palabra
@@ -273,29 +262,23 @@ class ListaFrecuencias:
     # Crear un top de tamaño n de frecuencias de palabras
     def obtenerTopN(self, n):
         # Sacar las palabras y frecuencias de la tabla hash y ponerlas en una lista
-        listaFrecuencias = []
-        
+        listaFrecuencias = []       
         # Recorremos cada elemento de la tabla
         for i in range(self.M):
-            nodoActual = self.tabla[i]
-            
+            nodoActual = self.tabla[i]   
             # Si hay palabras ahí (incluyendo las colisiones), las recorremos
             while nodoActual is not None:
                 # Guardamos un pequeño arreglo con la palabra y su numero de repeticiones
                 datos = [nodoActual.palabra, nodoActual.frecuencia]
-                listaFrecuencias.append(datos)
-                
+                listaFrecuencias.append(datos)   
                 # Pasamos al siguiente nodo en caso de que hayan chocado
                 nodoActual = nodoActual.next
-                
         # Ordenar de mayor a menor
-        cantidadDePalabras = len(listaFrecuencias)
-        
+        cantidadDePalabras = len(listaFrecuencias)  
         # Un ciclo para recorrer palabras
         for i in range(cantidadDePalabras):
             # Otro ciclo para comparar a un elemento con el siguiente
             for j in range(cantidadDePalabras - 1):
-                
                 frecuenciaActual = listaFrecuencias[j][1]
                 frecuenciaSiguiente = listaFrecuencias[j + 1][1]
                 
