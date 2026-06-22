@@ -62,16 +62,6 @@ class User:
         self.sentiment = sentiment
         self.next = None
 
-# Nodo tweet
-class Tweet:
-    def __init__(self, number, description, posted_by, likes, liked_by):
-        self.number = number
-        self.description = description
-        self.posted_by = posted_by
-        self.likes = likes
-        self.liked_by = liked_by
-        self.next = None
-
 # Funciones para lista de usuarios
 class UserList:
     # Inicializar
@@ -190,6 +180,16 @@ class UserList:
         print(f"2° Grado: {resultados[2]}")
         print(f"3° Grado: {resultados[3]}")
 
+# Nodo tweet
+class Tweet:
+    def __init__(self, number, description, posted_by, likes, liked_by):
+        self.number = number
+        self.description = description
+        self.posted_by = posted_by
+        self.likes = likes
+        self.liked_by = liked_by
+        self.next = None
+
 # Lista de tweets y sus funciones
 class TweetList:
     def __init__(self):
@@ -225,6 +225,13 @@ class TweetList:
                     current = current.next
                 current.next = nuevo_nodo
 
+# Nodo para la lista enlazada de colisiones (Encadenamiento separado)
+class NodoFrecuencia:
+    def __init__(self, palabra):
+        self.palabra = palabra
+        self.frecuencia = 1
+        self.next = None
+
 # NUEVO !!!! CLASE HASH
 class TablaHashFrecuencias:
     # Inicializar lista de frecuencias de cada palabra
@@ -252,12 +259,12 @@ class TablaHashFrecuencias:
         while current is not None:
             # Si la palabra existe en la lista, aumentamos su frecuencia
             if current.palabra == palabra:
-                current.frecuencia += 1
+                current.frecuencia = current.frecuencia + 1
                 return
             
             # Si estamos al final de la lista, insertamos la frecuencia
             if current.next is None:
-                self.totalColisiones += 1 # Hubo un choque real
+                self.totalColisiones = self.totalColisiones + 1
                 current.next = NodoFrecuencia(palabra)
                 return
                 
@@ -308,13 +315,6 @@ def djb2(palabra):
         # El & 0xFFFFFFFF es OBLIGATORIO en Python para truncar a 32 bits
         hashVal = ((hashVal * 33) + ord(char)) & 0xFFFFFFFF
     return hashVal
-
-# Nodo para la lista enlazada de colisiones (Encadenamiento separado)
-class NodoFrecuencia:
-    def __init__(self, palabra):
-        self.palabra = palabra
-        self.frecuencia = 1
-        self.next = None
 
 # CARGA Y PROCESAMIENTO DE DATOS
 
@@ -492,13 +492,16 @@ while True:
         # Pedir n a usuario
         print("\n--- Estadísticas de la Tabla Hash (Entrega III) ---")
         topN = int(input("Indique cantidad de palabras frecuentes (Ej. 5): "))  
+        
         # Se obtiene el top n de palabras más frecuentes
         # Y se guarda en resultadosTop
         resultadosTop = tablaFrecuencias.obtenerTopN(topN)
         print(f"\nTop {topN} palabras más usadas:")
+        
         # Recorrer datos dentro de la lista resultadosTop
         for posicion, (palabra, frecuencia) in enumerate(resultadosTop, start=1):
             print(f"{posicion}. '{palabra}' (Aparece {frecuencia} veces)")
+        
         # Métricas de la lista de frecuencia
         print("\n--- Métricas Técnicas ---")
         print(f"Tamaño del Vocabulario (N): {len(indiceInvertidoPalabras)}")
