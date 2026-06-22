@@ -1,21 +1,26 @@
 # Importar la libreria para leer los archivos csv
 import csv
+
 # CLASES
+
 # Nodo generico
 class NodoIndice:
     def __init__(self, numero_id):
         self.numero = numero_id
         self.next = None
+
 # Nodo amigo
 class FriendNode:
     def __init__(self, friend_id):
         self.friend_id = friend_id
         self.next = None
+
 # Funciones para lista de amigos
-class FriendList:
+class FriendList:    
     # Inicializar lista
     def __init__(self):
         self.head = None
+    
     # Insertar amigo al final de la lista
     def insert(self, friend_id):
         nuevo_nodo = FriendNode(friend_id)
@@ -35,6 +40,7 @@ class FriendList:
                 current = current.next
             # Agregar nodo al final de la lista
             current.next = nuevo_nodo
+    
     # Mostrar lista de amigos
     def print(self):
         current = self.head
@@ -45,28 +51,23 @@ class FriendList:
             print(current.friend_id, end=" ")
             current = current.next
         print("")
+
 # Nodo usuario
 class User:
+    # Inicializar nodo, friends y tweets son listas
     def __init__(self, number, friends, tweets, sentiment):
         self.number = number
-        self.friends = friends # Ahora recibe una instancia de FriendList
+        self.friends = friends 
         self.tweets = tweets
         self.sentiment = sentiment
         self.next = None
-# Nodo tweet
-class Tweet:
-    def __init__(self, number, description, posted_by, likes, liked_by):
-        self.number = number
-        self.description = description
-        self.posted_by = posted_by
-        self.likes = likes
-        self.liked_by = liked_by
-        self.next = None
+
 # Funciones para lista de usuarios
 class UserList:
     # Inicializar
     def __init__(self):
         self.head = None
+    
     # Mostrar lista de usuarios
     def print(self):
         current = self.head
@@ -74,6 +75,7 @@ class UserList:
             print(current.number, end=" ")
             current = current.next
         print("")
+    
     # Buscar si existe un usuario por numero
     def buscar(self, number):
         current = self.head
@@ -82,6 +84,7 @@ class UserList:
                 return 1
             current = current.next
         return 0
+    
     # Obtener usuario por numero
     def obtener_usuario(self, number):
         current = self.head
@@ -90,6 +93,7 @@ class UserList:
                 return current
             current = current.next
         return None
+    
     # Insertar un usuario a la lista de usuarios
     def insert(self, user):
         if self.head is None:
@@ -101,7 +105,9 @@ class UserList:
                 while current.next is not None:
                     current = current.next
                 current.next = user
+    
     # ENTREGA II
+    
     # Crear amigo de usuario en la lista de usuarios
     def crearAmistad (self, idUser1, idUser2):
         # Buscar usuarios por id
@@ -119,40 +125,51 @@ class UserList:
         user1.friends.insert(idUser2)
         user2.friends.insert(idUser1)
         print("Amistad creada")
+    
     # Mostrar lista de amigos de un usuario hasta 3er grado
     def gradosSeparacion(self, root_id):
         # Verificar que el usuario raiz exista
         root_user = self.obtener_usuario(root_id)
+        
         # Si no existe
         if root_user is None:
             print ("El usuario ingresado no existe")
             return
+        
         # Inicializar algoritmo BFS con cola
         visitados = set()
         cola = []
         # Para separar los resultados
         resultados = {1:[], 2:[], 3:[]}
+        
         # Nodo raiz es el usuario del que buscamos sus amistades
         cola.append((root_id, 0))
         visitados.add(root_id)
+        
         # Ciclo BFS 
         # Recorrer mientras hayan elementos en la cola
         while len(cola) > 0:
             currentId, currentGrado = cola.pop(0)
+            
             # Si es de grado 1 o 2 se añade a la lista de resultados
             if currentGrado > 0:
                 resultados[currentGrado].append(currentId)
+            
             # Si es de grado 3 se abandona el ciclo
             if currentGrado == 3:
                 continue
+            
             # Se traen los datos del usuario
             current_user = self.obtener_usuario(currentId)
+            
             # Si el usuario existe y la lista de amigos no está vacía
             if current_user is not None and current_user.friends.head is not None:
                 amigoNodo = current_user.friends.head
+                
                 # Se recorre la lista de amigos hasta el final
                 while amigoNodo is not None:
                     amigoId = amigoNodo.friend_id
+                    
                     # Si aun no se descubre el amigo, se marca y se encola
                     if amigoId not in visitados:
                         visitados.add(amigoId)
@@ -162,10 +179,22 @@ class UserList:
         print(f"1° Grado: {resultados[1]}")
         print(f"2° Grado: {resultados[2]}")
         print(f"3° Grado: {resultados[3]}")
+
+# Nodo tweet
+class Tweet:
+    def __init__(self, number, description, posted_by, likes, liked_by):
+        self.number = number
+        self.description = description
+        self.posted_by = posted_by
+        self.likes = likes
+        self.liked_by = liked_by
+        self.next = None
+
 # Lista de tweets y sus funciones
 class TweetList:
     def __init__(self):
         self.head = None
+    
     # Mostrar tweets
     def print(self):
         current = self.head
@@ -173,6 +202,7 @@ class TweetList:
             print(current.numero, end=" ") 
             current = current.next
         print("")
+    
     # Verificar si existe el tweet
     def buscar(self, number):
         current = self.head
@@ -181,6 +211,7 @@ class TweetList:
                 return 1
             current = current.next
         return 0
+    
     # Insertar un tweet a la lista de tweets
     def insert(self, number_id):
         nuevo_nodo = NodoIndice(number_id)
@@ -193,14 +224,25 @@ class TweetList:
                 while current.next is not None:
                     current = current.next
                 current.next = nuevo_nodo
+
+# Nodo para la lista enlazada de colisiones (Encadenamiento separado)
+class NodoFrecuencia:
+    def __init__(self, palabra):
+        self.palabra = palabra
+        self.frecuencia = 1
+        self.next = None
+
 # NUEVO !!!! CLASE HASH
 class TablaHashFrecuencias:
+    # Inicializar lista de frecuencias de cada palabra
     def __init__(self, tamanoM):
         self.M = tamanoM
         # Creamos un arreglo vacío de tamaño M
         self.tabla = [None] * tamanoM 
-        self.totalColisiones = 0 # Métrica requerida por la rúbrica
+        # Métrica requerida por la rúbrica
+        self.totalColisiones = 0 
 
+    # Agregar frecuencia a la palabra de la lista
     def insertar(self, palabra):
         # 1. Calcular el índice en el arreglo
         indice = djb2(palabra) % self.M
@@ -213,63 +255,69 @@ class TablaHashFrecuencias:
         # 3. Si hay colisión (ya existe algo ahí), recorremos la lista enlazada
         current = self.tabla[indice]
         
+        # Recorrer hasta el final de la lista
         while current is not None:
-            # Si la palabra ya existe, solo aumentamos su frecuencia
+            # Si la palabra existe en la lista, aumentamos su frecuencia
             if current.palabra == palabra:
-                current.frecuencia += 1
+                current.frecuencia = current.frecuencia + 1
                 return
             
-            # Si llegamos al final de la lista encadenada sin hallarla, la insertamos
+            # Si estamos al final de la lista, insertamos la frecuencia
             if current.next is None:
-                self.totalColisiones += 1 # Hubo un choque real
+                self.totalColisiones = self.totalColisiones + 1
                 current.next = NodoFrecuencia(palabra)
                 return
                 
             current = current.next
     
+    # Crear un top de tamaño n de frecuencias de palabras
     def obtenerTopN(self, n):
         todosLosTerminos = []
         
-        # Recorremos cada casilla del arreglo (de 0 a M-1)
+        # Recorremos cada elemento de la lista de frecuencias hasta M-1
         for i in range(self.M):
             current = self.tabla[i]
-            # Si hay datos (y colisiones), recorremos la lista enlazada
+            # Si hay datos, recorremos la lista enlazada
             while current is not None:
                 todosLosTerminos.append((current.palabra, current.frecuencia))
                 current = current.next
                 
-        # Ordenamos la lista de tuplas por la frecuencia (el elemento 1), de mayor a menor
+        # Ordenamos la lista por frecuencia, de mayor a menor
         todosLosTerminos.sort(key=lambda x: x[1], reverse=True)
         
-        # Retornamos solo los primeros N elementos
+        # Retornamos los primeros n elementos
         return todosLosTerminos[:n]
+
 # FUNCIONES GLOBALES
+
 # Funcion para borrar stopwords
 def borrarStopwords(tweet):
+    
     # Lista de stopwords
     lista_stopwords = ["a", "in", "my"]
     tweet_sin_sw = ""
+    
     # Por cada palabra en el tweet
     for palabra in tweet.split():
+        
         # Si la palabra no es SW, se acumula en tweet_sin_sw
         if palabra not in lista_stopwords:
             tweet_sin_sw = tweet_sin_sw  + palabra + " "
+    
     # Devolver eliminando el espacio final sobrante
     return tweet_sin_sw.strip() 
+
 # NUEVO!!!! FUNCION HASH
 def djb2(palabra):
     hashVal = 5381
     for char in palabra:
-        # El & 0xFFFFFFFF es OBLIGATORIO en Python según el PDF para truncar a 32 bits
+        
+        # El & 0xFFFFFFFF es OBLIGATORIO en Python para truncar a 32 bits
         hashVal = ((hashVal * 33) + ord(char)) & 0xFFFFFFFF
     return hashVal
-# Nodo para la lista enlazada de colisiones (Encadenamiento separado)
-class NodoFrecuencia:
-    def __init__(self, palabra):
-        self.palabra = palabra
-        self.frecuencia = 1
-        self.next = None
+
 # CARGA Y PROCESAMIENTO DE DATOS
+
 # Leer archivo y guardar sus datos en una lista
 data_list = []
 try:
@@ -293,10 +341,13 @@ except FileNotFoundError:
 user_list = UserList()
 user_number = 1
 contador = 0
+
 # INDICE INVERTIDO (ENTREGA I)
+
 # Lista de palabras
 indiceInvertidoPalabras = {}
 tablaFrecuencias = TablaHashFrecuencias(97)
+
 # Recorrer datos del archivo
 for data in data_list:
     # Creamos lista de amigos y lista de tweets
@@ -312,6 +363,7 @@ for data in data_list:
     palabras_sueltas = tweet_limpio.split()
     # Recorrer palabras en el tweet
     for palabra in palabras_sueltas:
+        tablaFrecuencias.insertar(palabra)
         # Si la palabra no existe en el indice
         # Se agrega al final de la lista de tweets y de una lista de palabras
         if palabra not in indiceInvertidoPalabras:
@@ -343,17 +395,21 @@ while True:
     print("7. Ver Estadísticas de Tabla Hash (Top N)")
     print("0. Salir")
     print("")
+    
     # Pedir opcion a usuario
     opcion = input("Elige una opción: ")
+    
     # Mostrar lista de usuarios
     if opcion == "1":
         print("\nLista de usuarios:")
         user_list.print()
+    
     # Limpiar las SW de un tweet
     elif opcion == "2":
         tweet = "found a raccoon in my house"
         print(f"\nOriginal: {tweet}")
         print(f"Limpio:   {borrarStopwords(tweet)}")
+    
     # Buscar una palabra en la lista de palabras
     elif opcion == "3":
         palabraBuscada = input("\nPalabra a buscar (ej. hate): ").lower()
@@ -362,6 +418,7 @@ while True:
             indiceInvertidoPalabras[palabraBuscada].print()
         else:
             print(f"La palabra '{palabraBuscada}' no se encontró.")
+    
     # Buscar mas de una palabra en la lista de palabras
     elif opcion == "4":
         fraseBuscada = input("\nFrase a buscar (ej. sick of this): ")
@@ -399,6 +456,7 @@ while True:
                 if not encontrado_al_menos_uno:
                     print("Las palabras existen, pero no en un mismo post.")
                 print("")
+    
     # Crear y mostrar amistades de dos usuarios
     elif opcion == "5":
         print("\n--- Prueba de Grafo no dirigido ---")
@@ -415,6 +473,7 @@ while True:
         print("Amigos del usuario 2:")
         user2 = user_list.obtener_usuario(2)
         if user2: user2.friends.print()
+    
     # Crear y mostrar amistades de un usuario, hasta tercer nivel
     elif opcion == "6":
         print("\n--- Prueba Grados de separacion ---")
@@ -427,18 +486,29 @@ while True:
         id_raiz = int(input("Ingresa el ID del usuario raíz (ej. 1): "))
         # Función que muestra las amistades del usuario hasta tercer grado
         user_list.gradosSeparacion(id_raiz)
-    # Terminar ejecución del programa
+    
+    # Crear un top n de frecuencias de palabras en la lista de tweets
     elif opcion == "7":
+        # Pedir n a usuario
         print("\n--- Estadísticas de la Tabla Hash (Entrega III) ---")
         topN = int(input("Indique cantidad de palabras frecuentes (Ej. 5): "))  
+        
+        # Se obtiene el top n de palabras más frecuentes
+        # Y se guarda en resultadosTop
         resultadosTop = tablaFrecuencias.obtenerTopN(topN)
         print(f"\nTop {topN} palabras más usadas:")
+        
+        # Recorrer datos dentro de la lista resultadosTop
         for posicion, (palabra, frecuencia) in enumerate(resultadosTop, start=1):
             print(f"{posicion}. '{palabra}' (Aparece {frecuencia} veces)")
+        
+        # Métricas de la lista de frecuencia
         print("\n--- Métricas Técnicas ---")
         print(f"Tamaño del Vocabulario (N): {len(indiceInvertidoPalabras)}")
         print(f"Tamaño de la Tabla Hash (M): {tablaFrecuencias.M}")
         print(f"Total de Colisiones detectadas: {tablaFrecuencias.totalColisiones}")
+    
+    # Terminar ejecución del programa
     elif opcion == "0":
         print("\nSaliendo del programa...")
         break
