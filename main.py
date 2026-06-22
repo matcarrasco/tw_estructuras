@@ -233,7 +233,7 @@ class NodoFrecuencia:
         self.next = None
 
 # NUEVO !!!! CLASE HASH
-class TablaHashFrecuencias:
+class ListaFrecuencias:
     # Inicializar lista de frecuencias de cada palabra
     def __init__(self, tamanoM):
         self.M = tamanoM
@@ -242,7 +242,7 @@ class TablaHashFrecuencias:
         # Métrica requerida por la rúbrica
         self.totalColisiones = 0 
 
-    # Agregar frecuencia a la palabra de la lista
+    # Agregar frecuencia a la palabra de la lista usando hashing
     def insertar(self, palabra):
         # 1. Calcular el índice en el arreglo
         indice = djb2(palabra) % self.M
@@ -272,21 +272,53 @@ class TablaHashFrecuencias:
     
     # Crear un top de tamaño n de frecuencias de palabras
     def obtenerTopN(self, n):
-        todosLosTerminos = []
+        # Sacar las palabras y frecuencias de la tabla hash y ponerlas en una lista
+        listaFrecuencias = []
         
-        # Recorremos cada elemento de la lista de frecuencias hasta M-1
+        # Recorremos cada elemento de la tabla
         for i in range(self.M):
-            current = self.tabla[i]
-            # Si hay datos, recorremos la lista enlazada
-            while current is not None:
-                todosLosTerminos.append((current.palabra, current.frecuencia))
-                current = current.next
+            nodoActual = self.tabla[i]
+            
+            # Si hay palabras ahí (incluyendo las colisiones), las recorremos
+            while nodoActual is not None:
+                # Guardamos un pequeño arreglo con la palabra y su numero de repeticiones
+                datos = [nodoActual.palabra, nodoActual.frecuencia]
+                listaFrecuencias.append(datos)
                 
-        # Ordenamos la lista por frecuencia, de mayor a menor
-        todosLosTerminos.sort(key=lambda x: x[1], reverse=True)
+                # Pasamos al siguiente nodo en caso de que hayan chocado
+                nodoActual = nodoActual.next
+                
+        # Ordenar de mayor a menor
+        cantidadDePalabras = len(listaFrecuencias)
         
-        # Retornamos los primeros n elementos
-        return todosLosTerminos[:n]
+        # Un ciclo para recorrer palabras
+        for i in range(cantidadDePalabras):
+            # Otro ciclo para comparar a un elemento con el siguiente
+            for j in range(cantidadDePalabras - 1):
+                
+                frecuenciaActual = listaFrecuencias[j][1]
+                frecuenciaSiguiente = listaFrecuencias[j + 1][1]
+                
+                # Si el actual es menor que el de la derecha, los intercambiamos
+                if frecuenciaActual < frecuenciaSiguiente:
+                    
+                    # Intercambio usando una variable auxiliar
+                    auxiliar = listaFrecuencias[j]
+                    listaFrecuencias[j] = listaFrecuencias[j + 1]
+                    listaFrecuencias[j + 1] = auxiliar
+                    
+        # Sacar solo las primeras N palabras pedidas
+        resultadosTop = []
+
+        # Validamos que no nos pidan más palabras de las que existen en total
+        if n > cantidadDePalabras:
+            n = cantidadDePalabras
+
+        # Llenamos el top n
+        for i in range(n):
+            resultadosTop.append(listaFrecuencias[i])
+            
+        return resultadosTop
 
 # FUNCIONES GLOBALES
 
@@ -346,7 +378,7 @@ contador = 0
 
 # Lista de palabras
 indiceInvertidoPalabras = {}
-tablaFrecuencias = TablaHashFrecuencias(97)
+listaFrecuencias = ListaFrecuencias(97)
 
 # Recorrer datos del archivo
 for data in data_list:
@@ -363,7 +395,7 @@ for data in data_list:
     palabras_sueltas = tweet_limpio.split()
     # Recorrer palabras en el tweet
     for palabra in palabras_sueltas:
-        tablaFrecuencias.insertar(palabra)
+        listaFrecuencias.insertar(palabra)
         # Si la palabra no existe en el indice
         # Se agrega al final de la lista de tweets y de una lista de palabras
         if palabra not in indiceInvertidoPalabras:
@@ -495,18 +527,20 @@ while True:
         
         # Se obtiene el top n de palabras más frecuentes
         # Y se guarda en resultadosTop
-        resultadosTop = tablaFrecuencias.obtenerTopN(topN)
+        resultadosTop = listaFrecuencias.obtenerTopN(topN)
         print(f"\nTop {topN} palabras más usadas:")
+        posicion = 1
         
         # Recorrer datos dentro de la lista resultadosTop
-        for posicion, (palabra, frecuencia) in enumerate(resultadosTop, start=1):
-            print(f"{posicion}. '{palabra}' (Aparece {frecuencia} veces)")
-        
+        for i in range(topN):
+            print(f"{posicion}. '{resultadosTop[i][0]}' (Aparece {resultadosTop[i][1]} veces)")
+            posicion = posicion + 1
+
         # Métricas de la lista de frecuencia
         print("\n--- Métricas Técnicas ---")
         print(f"Tamaño del Vocabulario (N): {len(indiceInvertidoPalabras)}")
-        print(f"Tamaño de la Tabla Hash (M): {tablaFrecuencias.M}")
-        print(f"Total de Colisiones detectadas: {tablaFrecuencias.totalColisiones}")
+        print(f"Tamaño de la Tabla Hash (M): {listaFrecuencias.M}")
+        print(f"Total de Colisiones detectadas: {listaFrecuencias.totalColisiones}")
     
     # Terminar ejecución del programa
     elif opcion == "0":
