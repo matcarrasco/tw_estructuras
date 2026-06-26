@@ -234,15 +234,15 @@ class ListaFrecuencias:
 
     # Agregar frecuencia a la palabra de la lista usando hashing
     def insertar(self, palabra):
-        # 1. Calcular el índice en el arreglo
+        # Calcular el índice en el arreglo
         indice = djb2(palabra) % self.M
 
-        # 2. Si la casilla está vacía, se inserta el primer nodo
+        # Si la casilla está vacía, se inserta el primer nodo
         if self.tabla[indice] is None:
             self.tabla[indice] = NodoFrecuencia(palabra)
             return
         else:
-            # 3. Si hay colisión (ya existe algo ahí), acumulamos colisiones y recorremos la lista enlazada
+            # Si hay colisión (ya existe algo ahí), acumulamos colisiones y recorremos la lista enlazada
             self.totalColisiones = self.totalColisiones + 1
             current = self.tabla[indice]
             
