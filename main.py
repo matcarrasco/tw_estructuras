@@ -224,11 +224,12 @@ class NodoFrecuencia:
 # NUEVO !!!! CLASE HASH
 class ListaFrecuencias:
     # Inicializar lista de frecuencias de cada palabra
-    def __init__(self, tamanoM):
-        self.M = tamanoM
+    def __init__(self):
+        # M sera el menor numero primo que cumpla con M > 1,5 * N
+        self.M = 97
         # Creamos un arreglo vacío de tamaño M
-        self.tabla = [None] * tamanoM 
-        # Métrica requerida por la rúbrica
+        self.tabla = [None] * 97
+        # Total de colisiones
         self.totalColisiones = 0 
 
     # Agregar frecuencia a la palabra de la lista usando hashing
@@ -241,7 +242,8 @@ class ListaFrecuencias:
             self.tabla[indice] = NodoFrecuencia(palabra)
             return
 
-        # 3. Si hay colisión (ya existe algo ahí), recorremos la lista enlazada
+        # 3. Si hay colisión (ya existe algo ahí), acumulamos colisiones y recorremos la lista enlazada
+        self.totalColisiones = self.totalColisiones + 1
         current = self.tabla[indice]
         
         # Recorrer hasta el final de la lista
@@ -253,7 +255,6 @@ class ListaFrecuencias:
             
             # Si estamos al final de la lista, insertamos la frecuencia
             if current.next is None:
-                self.totalColisiones = self.totalColisiones + 1
                 current.next = NodoFrecuencia(palabra)
                 return
                 
@@ -323,13 +324,11 @@ def borrarStopwords(tweet):
     return tweet_sin_sw.strip() 
 
 # NUEVO!!!! FUNCION HASH
-def djb2(palabra):
-    hashVal = 5381
+def djb2(palabra: str) -> int:
+    hash_value = 5381
     for char in palabra:
-        
-        # El & 0xFFFFFFFF es OBLIGATORIO en Python para truncar a 32 bits
-        hashVal = ((hashVal * 33) + ord(char)) & 0xFFFFFFFF
-    return hashVal
+        hash_value = ((hash_value << 5) + hash_value) + ord(char)
+    return hash_value & 0xFFFFFFFF
 
 # CARGA Y PROCESAMIENTO DE DATOS
 
@@ -361,7 +360,7 @@ contador = 0
 
 # Lista de palabras
 indiceInvertidoPalabras = {}
-listaFrecuencias = ListaFrecuencias(97)
+listaFrecuencias = ListaFrecuencias()
 
 # Recorrer datos del archivo
 for data in data_list:
@@ -378,7 +377,9 @@ for data in data_list:
     palabras_sueltas = tweet_limpio.split()
     # Recorrer palabras en el tweet
     for palabra in palabras_sueltas:
+        # Hashing
         listaFrecuencias.insertar(palabra)
+
         # Si la palabra no existe en el indice
         # Se agrega al final de la lista de tweets y de una lista de palabras
         if palabra not in indiceInvertidoPalabras:
@@ -397,6 +398,7 @@ for data in data_list:
     if contador >= 5:
         user_number = user_number + 1
         contador = 0
+
 # PRUEBAS
 # Menu principal
 while True:
@@ -506,7 +508,7 @@ while True:
     elif opcion == "7":
         # Pedir n a usuario
         print("\n--- Estadísticas de la Tabla Hash (Entrega III) ---")
-        topN = int(input("Indique cantidad de palabras frecuentes (Ej. 5): "))  
+        topN = int(input("Indique N para top N (Ej. 5): "))  
         
         # Se obtiene el top n de palabras más frecuentes
         # Y se guarda en resultadosTop
@@ -524,7 +526,7 @@ while True:
         print(f"Tamaño del Vocabulario (N): {len(indiceInvertidoPalabras)}")
         print(f"Tamaño de la Tabla Hash (M): {listaFrecuencias.M}")
         print(f"Total de Colisiones detectadas: {listaFrecuencias.totalColisiones}")
-    
+
     # Terminar ejecución del programa
     elif opcion == "0":
         print("\nSaliendo del programa...")
