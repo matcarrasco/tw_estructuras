@@ -130,46 +130,35 @@ class UserList:
     def gradosSeparacion(self, root_id):
         # Verificar que el usuario raiz exista
         root_user = self.obtener_usuario(root_id)
-        
         # Si no existe
         if root_user is None:
             print ("El usuario ingresado no existe")
             return
-        
         # Inicializar algoritmo BFS con cola
         visitados = set()
         cola = []
         # Para separar los resultados
         resultados = {1:[], 2:[], 3:[]}
-        
         # Nodo raiz es el usuario del que buscamos sus amistades
         cola.append((root_id, 0))
         visitados.add(root_id)
-        
-        # Ciclo BFS 
-        # Recorrer mientras hayan elementos en la cola
+        # Ciclo BFS - Recorrer mientras hayan elementos en la cola
         while len(cola) > 0:
             currentId, currentGrado = cola.pop(0)
-            
             # Si es de grado 1 o 2 se añade a la lista de resultados
             if currentGrado > 0:
                 resultados[currentGrado].append(currentId)
-            
             # Si es de grado 3 se abandona el ciclo
             if currentGrado == 3:
                 continue
-            
             # Se traen los datos del usuario
-            current_user = self.obtener_usuario(currentId)
-            
+            current_user = self.obtener_usuario(currentId)  
             # Si el usuario existe y la lista de amigos no está vacía
             if current_user is not None and current_user.friends.head is not None:
-                amigoNodo = current_user.friends.head
-                
+                amigoNodo = current_user.friends.head       
                 # Se recorre la lista de amigos hasta el final
                 while amigoNodo is not None:
                     amigoId = amigoNodo.friend_id
-                    
                     # Si aun no se descubre el amigo, se marca y se encola
                     if amigoId not in visitados:
                         visitados.add(amigoId)
@@ -225,7 +214,7 @@ class TweetList:
                     current = current.next
                 current.next = nuevo_nodo
 
-# Nodo para la lista enlazada de colisiones (Encadenamiento separado)
+# Nodo para la lista enlazada de colisiones
 class NodoFrecuencia:
     def __init__(self, palabra):
         self.palabra = palabra
@@ -235,11 +224,12 @@ class NodoFrecuencia:
 # NUEVO !!!! CLASE HASH
 class ListaFrecuencias:
     # Inicializar lista de frecuencias de cada palabra
-    def __init__(self, tamanoM):
-        self.M = tamanoM
+    def __init__(self):
+        # M sera el menor numero primo que cumpla con M > 1,5 * N
+        self.M = 97
         # Creamos un arreglo vacío de tamaño M
-        self.tabla = [None] * tamanoM 
-        # Métrica requerida por la rúbrica
+        self.tabla = [None] * 97
+        # Total de colisiones
         self.totalColisiones = 0 
 
     # Agregar frecuencia a la palabra de la lista usando hashing
@@ -252,7 +242,8 @@ class ListaFrecuencias:
             self.tabla[indice] = NodoFrecuencia(palabra)
             return
 
-        # 3. Si hay colisión (ya existe algo ahí), recorremos la lista enlazada
+        # 3. Si hay colisión (ya existe algo ahí), acumulamos colisiones y recorremos la lista enlazada
+        self.totalColisiones = self.totalColisiones + 1
         current = self.tabla[indice]
         
         # Recorrer hasta el final de la lista
@@ -264,7 +255,6 @@ class ListaFrecuencias:
             
             # Si estamos al final de la lista, insertamos la frecuencia
             if current.next is None:
-                self.totalColisiones = self.totalColisiones + 1
                 current.next = NodoFrecuencia(palabra)
                 return
                 
@@ -273,29 +263,23 @@ class ListaFrecuencias:
     # Crear un top de tamaño n de frecuencias de palabras
     def obtenerTopN(self, n):
         # Sacar las palabras y frecuencias de la tabla hash y ponerlas en una lista
-        listaFrecuencias = []
-        
+        listaFrecuencias = []       
         # Recorremos cada elemento de la tabla
         for i in range(self.M):
-            nodoActual = self.tabla[i]
-            
+            nodoActual = self.tabla[i]   
             # Si hay palabras ahí (incluyendo las colisiones), las recorremos
             while nodoActual is not None:
                 # Guardamos un pequeño arreglo con la palabra y su numero de repeticiones
                 datos = [nodoActual.palabra, nodoActual.frecuencia]
-                listaFrecuencias.append(datos)
-                
+                listaFrecuencias.append(datos)   
                 # Pasamos al siguiente nodo en caso de que hayan chocado
                 nodoActual = nodoActual.next
-                
         # Ordenar de mayor a menor
-        cantidadDePalabras = len(listaFrecuencias)
-        
+        cantidadDePalabras = len(listaFrecuencias)  
         # Un ciclo para recorrer palabras
         for i in range(cantidadDePalabras):
             # Otro ciclo para comparar a un elemento con el siguiente
             for j in range(cantidadDePalabras - 1):
-                
                 frecuenciaActual = listaFrecuencias[j][1]
                 frecuenciaSiguiente = listaFrecuencias[j + 1][1]
                 
@@ -340,13 +324,11 @@ def borrarStopwords(tweet):
     return tweet_sin_sw.strip() 
 
 # NUEVO!!!! FUNCION HASH
-def djb2(palabra):
-    hashVal = 5381
+def djb2(palabra: str) -> int:
+    hash_value = 5381
     for char in palabra:
-        
-        # El & 0xFFFFFFFF es OBLIGATORIO en Python para truncar a 32 bits
-        hashVal = ((hashVal * 33) + ord(char)) & 0xFFFFFFFF
-    return hashVal
+        hash_value = ((hash_value << 5) + hash_value) + ord(char)
+    return hash_value & 0xFFFFFFFF
 
 # CARGA Y PROCESAMIENTO DE DATOS
 
@@ -378,7 +360,7 @@ contador = 0
 
 # Lista de palabras
 indiceInvertidoPalabras = {}
-listaFrecuencias = ListaFrecuencias(97)
+listaFrecuencias = ListaFrecuencias()
 
 # Recorrer datos del archivo
 for data in data_list:
@@ -395,7 +377,9 @@ for data in data_list:
     palabras_sueltas = tweet_limpio.split()
     # Recorrer palabras en el tweet
     for palabra in palabras_sueltas:
+        # Hashing
         listaFrecuencias.insertar(palabra)
+
         # Si la palabra no existe en el indice
         # Se agrega al final de la lista de tweets y de una lista de palabras
         if palabra not in indiceInvertidoPalabras:
@@ -414,6 +398,7 @@ for data in data_list:
     if contador >= 5:
         user_number = user_number + 1
         contador = 0
+
 # PRUEBAS
 # Menu principal
 while True:
@@ -523,7 +508,7 @@ while True:
     elif opcion == "7":
         # Pedir n a usuario
         print("\n--- Estadísticas de la Tabla Hash (Entrega III) ---")
-        topN = int(input("Indique cantidad de palabras frecuentes (Ej. 5): "))  
+        topN = int(input("Indique N para top N (Ej. 5): "))  
         
         # Se obtiene el top n de palabras más frecuentes
         # Y se guarda en resultadosTop
@@ -541,7 +526,7 @@ while True:
         print(f"Tamaño del Vocabulario (N): {len(indiceInvertidoPalabras)}")
         print(f"Tamaño de la Tabla Hash (M): {listaFrecuencias.M}")
         print(f"Total de Colisiones detectadas: {listaFrecuencias.totalColisiones}")
-    
+
     # Terminar ejecución del programa
     elif opcion == "0":
         print("\nSaliendo del programa...")
