@@ -236,29 +236,27 @@ class ListaFrecuencias:
     def insertar(self, palabra):
         # 1. Calcular el índice en el arreglo
         indice = djb2(palabra) % self.M
-        
+
         # 2. Si la casilla está vacía, se inserta el primer nodo
         if self.tabla[indice] is None:
             self.tabla[indice] = NodoFrecuencia(palabra)
             return
-
-        # 3. Si hay colisión (ya existe algo ahí), acumulamos colisiones y recorremos la lista enlazada
-        self.totalColisiones = self.totalColisiones + 1
-        current = self.tabla[indice]
-        
-        # Recorrer hasta el final de la lista
-        while current is not None:
-            # Si la palabra existe en la lista, aumentamos su frecuencia
-            if current.palabra == palabra:
-                current.frecuencia = current.frecuencia + 1
-                return
+        else:
+            # 3. Si hay colisión (ya existe algo ahí), acumulamos colisiones y recorremos la lista enlazada
+            self.totalColisiones = self.totalColisiones + 1
+            current = self.tabla[indice]
             
-            # Si estamos al final de la lista, insertamos la frecuencia
-            if current.next is None:
-                current.next = NodoFrecuencia(palabra)
-                return
-                
-            current = current.next
+            # Recorrer hasta el final de la lista
+            while current is not None:
+                # Si la palabra existe en la lista, aumentamos su frecuencia
+                if current.palabra == palabra:
+                    current.frecuencia = current.frecuencia + 1
+                    return
+                # Si estamos al final de la lista, insertamos la frecuencia
+                if current.next is None:
+                    current.next = NodoFrecuencia(palabra)
+                    return
+                current = current.next
     
     # Crear un top de tamaño n de frecuencias de palabras
     def obtenerTopN(self, n):
@@ -361,6 +359,7 @@ contador = 0
 # Lista de palabras
 indiceInvertidoPalabras = {}
 listaFrecuencias = ListaFrecuencias()
+listaFrecuenciasUnica = ListaFrecuencias()
 
 # Recorrer datos del archivo
 for data in data_list:
@@ -398,6 +397,9 @@ for data in data_list:
     if contador >= 5:
         user_number = user_number + 1
         contador = 0
+
+for palabra in indiceInvertidoPalabras:
+    listaFrecuenciasUnica.insertar(palabra)
 
 # PRUEBAS
 # Menu principal
@@ -524,8 +526,9 @@ while True:
         # Métricas de la lista de frecuencia
         print("\n--- Métricas Técnicas ---")
         print(f"Tamaño del Vocabulario (N): {len(indiceInvertidoPalabras)}")
-        print(f"Tamaño de la Tabla Hash (M): {listaFrecuencias.M}")
-        print(f"Total de Colisiones detectadas: {listaFrecuencias.totalColisiones}")
+        print(f"Tamaño de la Tabla Hash (M): {listaFrecuenciasUnica.M}")
+        print(f"Total de Colisiones detectadas dataset: {listaFrecuencias.totalColisiones}")
+        print(f"Total de Colisiones detectadas indice invertido: {listaFrecuenciasUnica.totalColisiones}")
 
     # Terminar ejecución del programa
     elif opcion == "0":
